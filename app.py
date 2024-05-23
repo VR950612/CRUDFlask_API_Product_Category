@@ -186,6 +186,16 @@ def get_product(id):
     product = Product.query.get(id) #Select*from Product where id=id
     return product_schema.jsonify(product)
 
+
+
+# Get all products within a specified product_category
+# GET a random bunch of products
+@app.route('/product-by-category/<product_category_id>', methods=['GET'])
+def get_product_by_category(product_category_id):
+    products = Product.query.filter_by(product_category=product_category_id).all() #Select*from Product where id=id
+    print(products)
+    result = product_schema.dump(products, many=True)
+    return jsonify(result)
  
 #Edit/Update a Product - allows us for a PUT request and update the Product with the specified ID in the database
 @app.route('/product/<id>', methods=['PUT'])
