@@ -1,10 +1,11 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, session
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, fields
 import os
 
+from sqlalchemy import func
 
 #Initialize app
 app = Flask(__name__)
@@ -189,10 +190,17 @@ def get_product(id):
 
 
 # Get all products within a specified product_category
-# GET a random bunch of products
 @app.route('/product-by-category/<product_category_id>', methods=['GET'])
 def get_product_by_category(product_category_id):
     products = Product.query.filter_by(product_category=product_category_id).all() #Select*from Product where id=id
+    print(products)
+    result = product_schema.dump(products, many=True)
+    return jsonify(result)
+
+# GET a random bunch of products and limit it to 6 products
+@app.route('/random-product-set', methods=['GET'])
+def get_random_products():
+    products = Product.query.order_by(func.random()).limit(6).all() #Select*from Product where id=id
     print(products)
     result = product_schema.dump(products, many=True)
     return jsonify(result)
