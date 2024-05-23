@@ -38,7 +38,9 @@ class Product(db.Model):
     discounted_price = db.Column(db.Numeric(10, 2))
     product_display_title = db.Column(db.String(250))
     product_description = db.Column(db.String(1000))
+    product_image = db.Column(db.String(1000), nullable=True)
     product_category = db.Column(db.Integer, db.ForeignKey('product__category.id'),nullable=False)
+    
     # Source for foreign key reference - https://realpython.com/flask-connexion-rest-api-part-3/
 
     # will need other fields such as price which is decimal type, 2 places
@@ -217,4 +219,4 @@ def delete_product(id):
 
 
 if __name__ == "__main__":
-    app.run(port=5001)
+    app.run(port=5001, debug=True)
