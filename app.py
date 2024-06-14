@@ -10,7 +10,6 @@ from sqlalchemy import func
 #Initialize app
 app = Flask(__name__)
 #Database Configuration
-[9:34 am] Arthur Lewis
 # our database uri
 
 if 'RDS_DB_NAME' in os.environ:
