@@ -163,6 +163,12 @@ def get_product_category(id):
     product_category = Product_Category.query.get(id) #Select*from Product_Category where id=id
     return product_category_schema.jsonify(product_category)
 
+#GET Single Product_Category by category code - returns a single Product_Category with the specified category code in the database
+@app.route('/product_category_by_code/<category_code>', methods=['GET'])
+def get_product_category_by_code(category_code):
+    product_category = Product_Category.query.filter_by(category_code=category_code).first() #Select*from Product_Category where category_code='category_code'
+    return product_category_schema.jsonify(product_category)    
+
  
 #Edit/Update a Product_Category - allows us for a PUT request and update the Product_Category with the specified ID in the database
 @app.route('/product_category/<id>', methods=['PUT'])
