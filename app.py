@@ -22,9 +22,20 @@ if 'RDS_DB_NAME' in os.environ:
         database=os.environ['RDS_DB_NAME'],
     )
 else:
-    # our database uri
+  # our database uri
     # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'db.sqlite')
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Adminadmin123@localhost/productsdb'
+   
+
+# Database configuration
+    app.config['SQLALCHEMY_DATABASE_URI'] = \
+        'postgresql://{username}:{password}@{host}:{port}/{database}'.format(
+        username='postgres',
+        password='12345678',
+        host='localhost',
+        port='5432',
+        database='productsdb',
+    )
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
  
@@ -88,9 +99,11 @@ class Product_Category(db.Model):
         order_by="desc(Product.product_name)"
     )    
  
-    def __init__(self, category_name, category_code):
+    def __init__(self, category_name, category_code, products, id):
         self.category_name = category_name
         self.category_code = category_code
+        self.products = products
+        self.id = id
         
 #Product Schema
 class ProductSchema(ma.SQLAlchemyAutoSchema):
@@ -117,9 +130,9 @@ class Product_CategorySchema(ma.SQLAlchemyAutoSchema):
 #Init Schema for product_category
 product_category_schema = Product_CategorySchema() #Product_Category_schema will be used when dealing with product category
 
+ 
 
 
-        
 
 
 
@@ -133,6 +146,7 @@ def add_product_category():
     db.session.add(new_product_category)
     db.session.commit()
     return product_category_schema.jsonify(new_product_category)
+    
 
 
 #GET All Product_Category - returns a list of current Product category in the database
