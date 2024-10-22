@@ -167,27 +167,45 @@ def get_product_category(id):
 @app.route('/product_category_by_code/<category_code>', methods=['GET'])
 def get_product_category_by_code(category_code):
     product_category = Product_Category.query.filter_by(category_code=category_code).first() #Select*from Product_Category where category_code='category_code'
-    return product_category_schema.jsonify(product_category)    
+    return product_category_schema.jsonify(product_category)
+
+#GET Single Product_Category by category code - returns a single Product_Category with the specified category code in the database
+@app.route('/product_category_by_name/<category_name>', methods=['GET'])
+def get_product_category_by_name(category_name):
+    product_category = Product_Category.query.filter_by(category_name=category_name).first() #Select*from Product_Category where category_code='category_code'
+    return product_category_schema.jsonify(product_category)   
 
  
+# #Edit/Update a Product_Category - allows us for a PUT request and update the Product_Category with the specified ID in the database
+# @app.route('/product_category/<id>', methods=['PUT'])
+# def update_product_category(id):
+#     product_category = Product_Category.query.get(id) #Select*from Product_Category where id=id
+#     '''
+#     Update product_category
+#     set category_name = "",
+#     set category_code = "",
+#     where product_category_id = id
+#     '''
+#     product_category = product_category_schema.load(request.json, instance=product_category, partial=True)
+#     db.session.commit()
+#     return product_category_schema.jsonify(product_category)
+
 #Edit/Update a Product_Category - allows us for a PUT request and update the Product_Category with the specified ID in the database
 @app.route('/product_category/<id>', methods=['PUT'])
 def update_product_category(id):
     product_category = Product_Category.query.get(id) #Select*from Product_Category where id=id
-    '''
-    Update product_category
-    set category_name = "",
-    set category_code = "",
-    where product_category_id = id
-    '''
+    data = request.get_json()  
+     
+    # Update product attributes only if they are provided in the request
+    product_category.name = data.get('category_name', product_category.category_name)
+    product_category.code = data.get('category_code', product_category.category_code)
+ 
     product_category = product_category_schema.load(request.json, instance=product_category, partial=True)
     db.session.commit()
     return product_category_schema.jsonify(product_category)
-
  
 #Delete Product_Category - allows us for a DELETE request deleting a Product_Category with the specified ID in the Database
 @app.route('/product_category/<id>', methods=['DELETE'])
- 
 def delete_product_category(id):
     product_category = Product_Category.query.get(id)
     db.session.delete(product_category)
