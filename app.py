@@ -78,7 +78,7 @@ class Product(db.Model):
     # Later we put product images (3 of them) -> First get the above done, migrate
     # Then write the CRUD APIs for the product to be tested
 
-    def __init__(self, product_name, product_price, discount_percentage, discounted_price, product_display_title, product_description,  product_category, product_quantity):
+    def __init__(self, product_name, product_price, discount_percentage, discounted_price, product_display_title, product_description, product_category, product_quantity, product_image):
         self.product_name = product_name
         self.product_price= product_price
         self.discount_percentage = discount_percentage
@@ -87,6 +87,7 @@ class Product(db.Model):
         self.product_description = product_description
         self.product_quantity = product_quantity
         self.product_category =  product_category
+        self.product_image = product_image
 
 #Product_Category Model
 class Product_Category(db.Model):
@@ -134,12 +135,6 @@ class Product_CategorySchema(ma.SQLAlchemyAutoSchema):
 product_category_schema = Product_CategorySchema() #Product_Category_schema will be used when dealing with product category
 
  
-
-
-
-
-
-
 #POST Endpoint
 #Create Product_Category
 @app.route('/product_category', methods=['POST'])
@@ -190,21 +185,6 @@ def get_product_category_by_name(category_name):
     product_category = Product_Category.query.filter_by(category_name=category_name).first() #Select*from Product_Category where category_code='category_code'
     return product_category_schema.jsonify(product_category)   
 
- 
-# #Edit/Update a Product_Category - allows us for a PUT request and update the Product_Category with the specified ID in the database
-# @app.route('/product_category/<id>', methods=['PUT'])
-# def update_product_category(id):
-#     product_category = Product_Category.query.get(id) #Select*from Product_Category where id=id
-#     '''
-#     Update product_category
-#     set category_name = "",
-#     set category_code = "",
-#     where product_category_id = id
-#     '''
-#     product_category = product_category_schema.load(request.json, instance=product_category, partial=True)
-#     db.session.commit()
-#     return product_category_schema.jsonify(product_category)
-
 #Edit/Update a Product_Category - allows us for a PUT request and update the Product_Category with the specified ID in the database
 @app.route('/product_category/<id>', methods=['PUT'])
 def update_product_category(id):
@@ -231,12 +211,25 @@ def delete_product_category(id):
 #POST Endpoint
 #Create Product
 @app.route('/product', methods=['POST'])
-def add_product():
+def add_new_product():
     new_product = product_schema.load(request.json)
     print(new_product)
-    db.session.add(new_product)
-    db.session.commit()
-    return product_schema.jsonify(new_product)
+
+    received_data = request.json
+    print(received_data)
+    received_product_name = received_data['product_name']
+
+    product = Product.query.filter_by(product_name=received_product_name).first()
+    print(product)
+
+    if product:
+        return make_response({"message": "Product with this name already exists, please try again with a different product and code"}, 200, {'Content-type':'application/json'})
+    else:
+        db.session.add(new_product)
+        db.session.commit()
+        return make_response({"message": "New product has been added successfully"}, 201, {'Content-type':'application/json'})
+    #return product_category_schema.jsonify(new_product)
+    
 
 
 #GET All Product - returns a list of current Product in the database
@@ -255,7 +248,6 @@ def get_product(id):
 
 #Delete Product - allows us for a DELETE request deleting a Product with the specified ID in the Database
 @app.route('/product/<id>', methods=['DELETE'])
- 
 def delete_product(id):
     product = Product.query.get(id)
     db.session.delete(product)
@@ -279,38 +271,19 @@ def get_random_products():
     result = product_schema.dump(products, many=True)
     return jsonify(result)
  
-# #Add a product by merchant - allows us for a POST request and add new Product with the specified ID in the database
-# @app.route('/product', methods=['POST'])
-# def add_newproduct():
-#     # Load and validate the incoming JSON data
-#     try:
-#         product_data = product_schema.load(request.json)  # Validate the input data against your schema
-        
-#         # Create a new product instance
-#         new_product = Product(
-#             product_name=product_data['product_name'],
-#             product_price=product_data['product_price'],
-#             discount_percentage=product_data.get('discount_percentage', 0),
-#             discounted_price=product_data.get('discounted_price', 0),
-#             product_display_title=product_data['product_display_title'],
-#             product_description=product_data['product_description'],
-#             product_category=product_data['product_category'],
-#             product_quantity=product_data['product_quantity']
-#         )
-        
-#         # Print the new product for debugging purposes
-#         print(new_product)
-        
-#         # Add the new product to the session and commit to the database
-#         db.session.add(new_product)
-#         db.session.commit()
-        
-#         # Return the newly created product as a JSON response
-#         return product_schema.jsonify(new_product), 201  # Return 201 Created
 
-#     except Exception as e:
-#         db.session.rollback()  # Roll back the session on error
-#         return jsonify({"error": str(e)}), 400  # Return a 400 Bad Request with the error message
+#POST Endpoint
+#Create Product by Merchant
+@app.route('/product', methods=['POST'])
+def add_newproduct():
+    try:
+        new_product = product_schema.load(request.json)
+        db.session.add(new_product)
+        db.session.commit()
+        return jsonify({"message": "New product has been added successfully"}), 201
+    except Exception as e:
+        db.session.rollback()  # In case of any error
+        return jsonify({"message": "Error occurred while adding the product"}), 500
         
 
 #Edit/Update a Product by merchant - allows us for a PUT request and update the Product with the specified ID in the database
@@ -334,31 +307,18 @@ def update_product(id):
     db.session.commit()
     return product_schema.jsonify(product)
 
-#Delete Product by merchant - allows us for a DELETE request deleting a Product with the specified ID in the Database
-@app.route('/product/<int:id>', methods=['DELETE'])
-def merchant_deleteproduct(id):
-    product = Product.query.get(id)  # Fetch the product by ID
-    
-    if not product:
-        return jsonify({"error": "Product not found"}), 404  # Return 404 if not found
-    
-    db.session.delete(product)  # Delete the product
-    db.session.commit()  # Commit the changes
-    
-    return jsonify({"message": "Product deleted successfully"}), 204  # Return 204 No Content
-
-
 @app.route('/searchdata', methods=['GET'])
 def searchdata():
     # Get the search term from the query parameter
     search_term = request.args.get('search_word', '')
+    if not search_term:
+        return "Please provide a search term."
  
     # Query the Product table for matching results
     results = Product.query.filter(Product.product_name.ilike(f'%{search_term}%')).all()
     
     result = product_schema.dump(results, many=True)
     return jsonify(result)
-
 
 #Shopping cart Model
 class Cart(db.Model):
