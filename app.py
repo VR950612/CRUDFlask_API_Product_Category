@@ -320,49 +320,5 @@ def searchdata():
     result = product_schema.dump(results, many=True)
     return jsonify(result)
 
-#Shopping cart Model
-class Cart(db.Model):
-    __tablename__ = 'cart'
-    cart_item_id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey('product.product.id'), nullable=False)
-    quantity = db.Column(db.Integer, default=1)
-    
-    def __repr__(self):
-       return f"<Cart cart_item_id={self.cart_item_id}, user_id={self.user_id}, product_id={self.product_id}, quantity={self.quantity}>"
-
-
-class Order(db.Model):
-    __tablename__ = 'orders'
-    
-    order_id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, nullable=False)
-    user_first_name = db.Column(db.String, nullable=False)
-    user_last_name = db.Column(db.String, nullable=False)
-    user_email_address = db.Column(db.String, nullable=False)
-    user_mobile = db.Column(db.String, nullable=False)
-    shipping_address = db.Column(db.String, nullable=False)
-    shipping_city = db.Column(db.String, nullable=False)
-    shipping_state = db.Column(db.String, nullable=False)
-    shipping_zip = db.Column(db.String, nullable=False)
-    shipping_country = db.Column(db.String, nullable=False)
-    total_amount = db.Column(db.Numeric(10, 2), nullable=False)
-    order_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    
-    def __repr__(self):
-        return f"<Order {self.order_id}>"
-
-#
-class OrderItem(db.Model):
-    __tablename__ = 'order_items'
-    
-    order_item_id = db.Column(db.Integer, primary_key=True)
-    order_id = db.Column(db.Integer, db.ForeignKey('orders.order_id'), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey('product.product.id'), nullable=False)
-    product_name = db.Column(db.String, nullable=False)
-    product_price = db.Column(db.Numeric(10, 2), nullable=False)
-    product_quantity = db.Column(db.Integer, nullable=False)
-
-
 if __name__ == "__main__":
     app.run(port=5001, debug=True)
